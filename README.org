@@ -1,0 +1,77 @@
+#+title: Consistent lecture notes — Conversion Pipeline & Protocol
+#+startup: overview
+
+A deterministic conversion pipeline and Org-mode schema for turning
+heterogeneous open-source lecture notes (LaTeX, Jupyter Book, mdBook,
+and Markdown) into a uniform, Org-Mode or markdown file structure.
+
+At this stage, this repository tracks only the conversion tooling,
+protocol specification, and licence-auditing scripts. Converted course
+trees are excluded via =.gitignore= until individual courses have been
+cleaned, verified for free/open licensing, and checked for upstream
+attribution.
+
+* Repository layout
+
++ =protocol/= — Formal specification for directory layout, file naming,
+  =:PROPERTIES:= frontmatter, section structure, and link conventions.
+
++ =scripts/convert/= — Modular converter package (=mathconv.py=,
+  =provenance.py=, =assets.py=, =links.py=, =writer.py=) driven by Pandoc.
+
++ =scripts/ingest.sh= — Convert, lint, and index a single course.
+
++ =scripts/sync.sh= — Idempotently convert, lint, and index all courses
+  in the workspace, skipping any that are already lint-clean.
+
++ =scripts/lint.py= — Validator enforcing the protocol rules across
+  generated =.org= files.
+
++ =scripts/gen_courses_org.py= — Audits upstream =LICENSE*=, =COPYING*=,
+  and metadata files to generate =courses.org= and manage =.gitignore=
+  exclusions.
+
+=scripts/gen_project_index.py= — Generates the local root =index.org=.
+
+* Requirements
+
++ Python 3.10+
++ =pandoc= on =PATH=
++ =git=
+
+* Workflow
+
+Place an upstream repository under =/source/=).
+
+Convert and validate a single course:
+#+begin_src bash
+./scripts/ingest.sh
+#+end_src
+
+Or run across the whole workspace:
+#+begin_src bash
+./scripts/sync.sh
+#+end_src
+
+By default, Pandoc emits native Org LaTeX fragments into
+=/org-latex/=. Pass =--math-format typst= to emit
+Typst math into =org-typst/= instead.
+/Note that the Typst maths conversion is still WIP./
+/Not everything will be converted correctly,/
+/and it will require manual changing/.
+
+* Licensing & provenance
+
+Every conversion injects the upstream author/origin, repository URL, and
+detected licence into each page's =:PROPERTIES:= drawer and the course's
+=index.org= via =scripts/convert/provenance.py=.
+
+=scripts/gen_courses_org.py= enforces a fail-closed Git export policy:
+
+  =block-all= (current default) — ignores all =//= trees
+  as well as local =courses.org= and =index.org= files so only the
+  tooling and protocol are tracked.
+
+  =free-only= — tracks courses with verified free/open licences (e.g.,
+  CC BY, CC BY-SA, CC0, MIT, Apache-2.0, GPL) while continuing to block
+  =CC BY-NC=, =CC BY-ND=, personal notes, and unverified sources.

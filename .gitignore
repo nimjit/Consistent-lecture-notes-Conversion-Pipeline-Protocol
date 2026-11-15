@@ -1,0 +1,89 @@
+# Converter & staging artifacts
+.staging/
+.convert-cache/
+*.bak-*/
+tudelft-courseware-plan.org
+
+# Python & OS clutter
+__pycache__/
+*.py[cod]
+.DS_Store
+
+# Emacs backups & lockfiles
+*~
+\#*\#
+.\#*
+
+# Original source files
+*/*/source/
+
+# === BEGIN LICENSE-BLOCKED COURSES (managed by scripts/update_gitignore.py) ===
+# === END LICENSE-BLOCKED COURSES ===
+
+# === BEGIN LICENSE-BLOCKED COURSES (managed by scripts/gen_courses_org.py) ===
+# Global policy: block all course trees and local course indexes
+courses.org
+index.org
+# computing/algorithms-penn-state — CC BY-NC; policy=block-all
+computing/algorithms-penn-state/
+# computing/object-oriented-scientific-programming-with-cpp — /personal — rewrite / permission review before any; policy=block-all
+computing/object-oriented-scientific-programming-with-cpp/
+# computing/operating-systems-notes — none stated; policy=block-all
+computing/operating-systems-notes/
+# computing/software-fundamentals-lecture-notes — /pending upstream audit/; policy=block-all
+computing/software-fundamentals-lecture-notes/
+# mathematics/abstract-algebra-doty — CC BY 4.0; policy=block-all
+mathematics/abstract-algebra-doty/
+# mathematics/complex-analysis-mines-paristech — CC BY-NC-SA 4.0; policy=block-all
+mathematics/complex-analysis-mines-paristech/
+# mathematics/graduate-algebra-tommychen — CC BY 4.0; policy=block-all
+mathematics/graduate-algebra-tommychen/
+# mathematics/numerical-analysis-illinois — none stated; policy=block-all
+mathematics/numerical-analysis-illinois/
+# mathematics/numerical-methods-pdes-columbia — CC0 1.0 + CC BY 4.0; policy=block-all
+mathematics/numerical-methods-pdes-columbia/
+# mathematics/partial-differential-equations-ottawa — CC BY-NC-SA 4.0; policy=block-all
+mathematics/partial-differential-equations-ottawa/
+# philosophy/ethics-for-tech-matloff — none stated; policy=block-all
+philosophy/ethics-for-tech-matloff/
+# philosophy/philosophy-and-ethics-petty — none stated; policy=block-all
+philosophy/philosophy-and-ethics-petty/
+# physics/classical-electrodynamics-hkolatan — Apache 2.0; policy=block-all
+physics/classical-electrodynamics-hkolatan/
+# physics/classical-mechanics-and-special-relativity — CC BY (any derivative work in =org-mode/= inherits); policy=block-all
+physics/classical-mechanics-and-special-relativity/
+# physics/computational-fluid-dynamics-dresden — none stated; policy=block-all
+physics/computational-fluid-dynamics-dresden/
+# physics/computational-physics — /pending upstream audit/; policy=block-all
+physics/computational-physics/
+# physics/continuum-mechanics-cambridge-prep — none stated; policy=block-all
+physics/continuum-mechanics-cambridge-prep/
+# physics/general-relativity-schuller — LGPL v2; policy=block-all
+physics/general-relativity-schuller/
+# physics/graduate-quantum-mechanics-fitzpatrick — none stated; policy=block-all
+physics/graduate-quantum-mechanics-fitzpatrick/
+# physics/phy2403-quantum-field-theory — none stated; policy=block-all
+physics/phy2403-quantum-field-theory/
+# physics/phys6350-computational-physics — none stated; policy=block-all
+physics/phys6350-computational-physics/
+# physics/quantum-error-correction-notes — CC BY 4.0; policy=block-all
+physics/quantum-error-correction-notes/
+# physics/quantum-foundations-interpretations — none stated; policy=block-all
+physics/quantum-foundations-interpretations/
+# physics/quantum-scientific-computing — none stated; policy=block-all
+physics/quantum-scientific-computing/
+# physics/quantum-theory-schuller — none stated; policy=block-all
+physics/quantum-theory-schuller/
+# physics/quantum-transport-mesoscopic — MIT; policy=block-all
+physics/quantum-transport-mesoscopic/
+# physics/semiconductor-physics-and-devices — MIT; policy=block-all
+physics/semiconductor-physics-and-devices/
+# physics/statistical-mechanics-padova — Apache 2.0; policy=block-all
+physics/statistical-mechanics-padova/
+# physics/stellar-physics-notes — CC BY-NC-SA 4.0; policy=block-all
+physics/stellar-physics-notes/
+# physics/theoretical-physics-msc-manci — none stated; policy=block-all
+physics/theoretical-physics-msc-manci/
+# physics/ucd-grad-physics-2019-2020 — none stated; policy=block-all
+physics/ucd-grad-physics-2019-2020/
+# === END LICENSE-BLOCKED COURSES ===

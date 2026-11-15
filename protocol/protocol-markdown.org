@@ -1,0 +1,47 @@
+#+title: Protocol — markdown mirror
+#+startup: overview
+
+The markdown form of the wiki — the public-facing artifact. Likely form:
+an Obsidian vault built from the =org-mode/= tree per =protocol-org.org=.
+
+* Status
+
+*Stub.* Filled in when the wiki moves toward public release.
+
+* Scope
+
+This file governs =markdown/= subdirectories within each course folder.
+When this is filled in, it describes the public-facing markdown form.
+
+Until then, markdown subdirectories can hold notebook-converted markdown
+(=nb2md.py= output) or hand-written markdown; no rules apply.
+
+* Inheritance
+
+Every rule in =protocol-org.org= applies here unchanged, except for the
+three sections listed below, which must be re-specified because the
+syntax differs. Everything else — layout, naming, frontmatter fields,
+section structure, licence tracking, lint checks — is identical to the
+org protocol.
+
+** Sections that will diverge
+
+- *Math syntax* (F in the org protocol). Expected: KaTeX / MathJax form
+  with =$...$= inline and =$$...$$= block. Typst does not survive export
+  to markdown as-is.
+- *Links* (J). Expected: =[[wiki-link]]= syntax if targeting Obsidian;
+  plain markdown links otherwise. =id:= references need resolving to
+  file paths at build time.
+- *Assets* (H). Expected: images referenced inline as =![alt](path)=
+  rather than org id lookup; same directory layout.
+
+** Decisions deferred
+
+- N1 (generator): pandoc via a script, Emacs =ox-md=, or something else.
+- Obsidian-specific features: whether to use =dataview=, callouts,
+  properties, etc.
+
+* Where to look
+
+Start from =protocol-org.org= for every decision that still applies. This
+file only needs to document departures.

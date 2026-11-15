@@ -1,0 +1,82 @@
+#+title: Source formats reference
+#+startup: overview
+
+Reference for the upstream formats found in course =source/= trees.
+Not our rules — their rules — documented so that where our wiki protocol
+diverges is visible.
+
+Scope: structure only (Q2) — file tree + what each file does. Conversion
+notes do not belong here; they live in the import tooling under =scripts/=.
+
+Add a section when importing a course whose format is not yet covered.
+
+* Jupyter Book
+
+Scientific documentation framework by the Executable Books Project.
+Builds HTML/PDF from a tree of markdown and =.ipynb= pages.
+
+In use: =physics/classical-mechanics-and-special-relativity/source/=.
+
+Typical structure:
+
+#+begin_example
+<course>/source/
+├── _config.yml           — site configuration (title, authors, build options)
+├── _toc.yml              — ordered table of contents (page hierarchy)
+├── content/              — pages (markdown and/or Jupyter notebooks)
+│   └── …
+├── _static/              — CSS, logos, other static assets
+├── index.md              — landing page
+├── requirements.txt      — Python deps for building
+└── README.md
+#+end_example
+
+The authoritative ordering is in =_toc.yml=, not the filesystem.
+
+* mdbook
+
+Rust-based markdown book framework. Static site built from a =src/= tree
+whose structure is given by =SUMMARY.md=.
+
+In use: =computing/software-fundamentals-lecture-notes/source/=.
+
+Typical structure:
+
+#+begin_example
+<course>/source/
+├── book.toml             — site configuration (title, build options)
+├── src/
+│   ├── SUMMARY.md        — hierarchy (chapters and sections)
+│   ├── <chapter>.md
+│   └── …
+├── .gitignore
+└── README.md
+#+end_example
+
+The authoritative ordering is in =src/SUMMARY.md=, not the filesystem.
+
+Associated-tooling junk commonly found and stripped per protocol P1:
+=.idea/= (JetBrains), =.gitlab-ci.yml=, =.vscode/=. Stripped items are
+listed in =source/_meta.org= per course.
+
+* Markdown converted from Jupyter notebooks
+
+Flat markdown trees produced by =scripts/nb2md.py= from a =.ipynb=
+upstream. The notebook itself is not retained; the markdown is the
+practical source.
+
+In use: =physics/computational-physics/markdown/= and
+=computing/object-oriented-scientific-programming-with-cpp/markdown/=.
+
+Typical structure:
+
+#+begin_example
+<course>/markdown/
+├── <lecture-1>.md
+├── <lecture-2>.md
+└── …
+#+end_example
+
+No manifest file. Order is implicit in file names. Treated as
+publishable-form markdown, not as upstream =source/= — see the per-course
+=README.org= for provenance.

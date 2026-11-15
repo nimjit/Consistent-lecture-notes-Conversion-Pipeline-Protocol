@@ -1,0 +1,51 @@
+#+title: Controlled major-tag vocabulary
+#+startup: overview
+
+The authoritative list of /major/ tags, per =protocol/protocol-org.org=
+§Tags (L1). Minor tags are free-form and not listed here; they only need
+to follow the spelling rule (lowercase, hyphenated, full words).
+
+The linter rejects major-looking tags that do not appear below.
+Adding a new major tag is a protocol change: add it here, in alphabetical
+order within its section, with a one-line description.
+
+* Domains
+
+Top-level subject domains. One of these should be on almost every file.
+
+- =computing= — anything primarily about programming, systems, numerical
+  tooling.
+- =mathematics= — pure mathematics or math-as-subject (not a methods
+  tool).
+- =physics= — physical theory and experiment.
+
+* Subjects (physics)
+
+Named physical theories or sub-fields. Keep narrow and durable.
+
+- =classical-mechanics=
+- =computational-physics=
+- =special-relativity=
+
+* Subjects (computing)
+
+- =object-oriented-programming=
+- =rust=
+- =cpp=
+
+* File roles
+
+Cross-cutting roles a file can play. Independent of subject.
+
+- =exercise= — contains worked problems the reader is meant to attempt.
+- =reference= — definitional / lookup content, not meant to be read linearly.
+- =worked-example= — a fully-solved example in the middle of a derivation.
+
+* Growth protocol
+
+- Prefer *extending* an existing major tag's description over creating a
+  near-duplicate.
+- A tag that has been used fewer than three times across the whole wiki
+  does not need to be a major tag; keep it minor.
+- When promoting a minor tag to major, grep the whole wiki first and
+  pick the spelling that already dominates.
