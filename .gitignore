@@ -2,7 +2,6 @@
 .staging/
 .convert-cache/
 *.bak-*/
-tudelft-courseware-plan.org
 
 # Python & OS clutter
 __pycache__/
