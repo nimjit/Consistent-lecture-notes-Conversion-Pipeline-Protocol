@@ -26,9 +26,10 @@ org protocol.
 
 ** Sections that will diverge
 
-- *Math syntax* (F in the org protocol). Expected: KaTeX / MathJax form
-  with =$...$= inline and =$$...$$= block. Typst does not survive export
-  to markdown as-is.
+- *Maths syntax* (F in the org protocol). Expected: KaTeX / MathJax form
+  with =$...$= inline and =$$...$$= block. Files using the default
+  =:MATH_FORMAT: latex= map directly from =\(...\)= / =\[...\]=; files
+  using =:MATH_FORMAT: typst= require conversion at export time.
 - *Links* (J). Expected: =[[wiki-link]]= syntax if targeting Obsidian;
   plain markdown links otherwise. =id:= references need resolving to
   file paths at build time.

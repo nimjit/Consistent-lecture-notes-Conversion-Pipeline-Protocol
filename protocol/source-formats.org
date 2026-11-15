@@ -45,10 +45,6 @@ Typical structure:
 └── README.md
 #+end_example
 
-Associated-tooling junk commonly found and stripped per protocol P1:
-=.idea/= (JetBrains), =.gitlab-ci.yml=, =.vscode/=. Stripped items are
-listed in =source/_meta.org= per course.
-
 * Markdown converted from Jupyter notebooks
 
 Flat markdown trees produced by =scripts/nb2md.py= from a =.ipynb=
@@ -67,4 +63,3 @@ Typical structure:
 ├── <lecture-2>.md
 └── …
 #+end_example
-

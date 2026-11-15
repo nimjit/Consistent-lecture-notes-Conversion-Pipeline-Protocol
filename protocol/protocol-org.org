@@ -15,9 +15,10 @@ question that set it. The full decision ledger is at the end of this file.
 
 * Status
 
-Draft 1. Written before any course has been cleaned to protocol. Rules
-will tighten as reality teaches them; when they change, update both the
-rule and the ledger.
+Draft 1. The org-mode conversion works reasonably for LaTeX maths,
+but still has issues converting cleanly without information-loss
+to typst. markdown conversion is not yet handled, this will be
+done if anyone other than me is actually interested in this conversion.
 
 * Project layout
 
@@ -188,7 +189,7 @@ Marked with custom org blocks (D3):
 The name after the keyword is the human-readable label; renderers can
 show it and the lint/build scripts can index it.
 
-* Math — Typst
+* Maths — Typst
 
 The wiki writes math in *Typst syntax* and nothing else (F3). LaTeX in
 the org tree is forbidden; LaTeX found in imported upstream is converted
@@ -287,13 +288,13 @@ page, arXiv link, etc. Local PDF libraries live elsewhere
 Dedicated template (I1):
 
 #+begin_src org
-* Problem statement
+;* Problem statement
 ...
 
-* Solution
+;* Solution
 ...
 
-* Reflection
+;* Reflection
 ...
 #+end_src
 
@@ -419,7 +420,7 @@ changes, update this table too.
 | G2   | Babel execution                 | Yes where sensible                                                               |
 | G3   | =#+RESULTS= capture               | Not stored                                                                       |
 | H1   | Asset location                  | =org-mode/assets/attachments/= + =org-mode/assets/code/=                             |
-| H2   | Asset naming                    | Descriptive slug; referenced by relative =[[file:…]]= link                       |
+| H2   | Asset naming                    | Descriptive slug; referenced by relative =[[file:…]]= link                         |
 | H3   | Captions                        | Required for externally-licenced figures                                         |
 | H4   | PDFs in the wiki                | None; URLs only                                                                  |
 | I1   | Assignment template             | Dedicated: Problem statement / Solution / Reflection                             |

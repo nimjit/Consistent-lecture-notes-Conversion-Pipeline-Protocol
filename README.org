@@ -3,7 +3,7 @@
 
 A deterministic conversion pipeline and Org-mode schema for turning
 heterogeneous open-source lecture notes (LaTeX, Jupyter Book, mdBook,
-and Markdown) into a uniform, Org-Mode or markdown file structure.
+and Markdown) into a uniform Org-mode or Markdown file structure.
 
 At this stage, this repository tracks only the conversion tooling,
 protocol specification, and licence-auditing scripts. Converted course
@@ -31,7 +31,9 @@ attribution.
   and metadata files to generate =courses.org= and manage =.gitignore=
   exclusions.
 
-=scripts/gen_project_index.py= — Generates the local root =index.org=.
++ =scripts/gen_project_index.py= — Generates a local root =index.org=.
+
++ =TODO.org= — Open protocol and tooling tasks.
 
 * Requirements
 
@@ -41,7 +43,7 @@ attribution.
 
 * Workflow
 
-Place an upstream repository under =/source/=).
+Place an upstream repository under =<domain>/<course-slug>/source/=.
 
 Convert and validate a single course:
 #+begin_src bash
@@ -53,24 +55,27 @@ Or run across the whole workspace:
 ./scripts/sync.sh
 #+end_src
 
-By default, Pandoc emits native Org LaTeX fragments into
-=/org-latex/=. Pass =--math-format typst= to emit
-Typst math into =org-typst/= instead.
+By default, Pandoc emits native Org LaTeX math into
+=<course>/org-latex/= and sets =:MATH_FORMAT: latex=. Pass
+=--math-format typst= to emit Typst math (=:MATH_FORMAT: typst=)
+instead. This will then be stored =<course>/org-latex/=.
 /Note that the Typst maths conversion is still WIP./
 /Not everything will be converted correctly,/
-/and it will require manual changing/.
+/and it will require manual cleanup./
+
+*Markdown conversion is currently not handled yet.*
 
 * Licensing & provenance
 
 Every conversion injects the upstream author/origin, repository URL, and
 detected licence into each page's =:PROPERTIES:= drawer and the course's
-=index.org= via =scripts/convert/provenance.py=.
+=README.org= via =scripts/convert/provenance.py=.
 
 =scripts/gen_courses_org.py= enforces a fail-closed Git export policy:
 
-  =block-all= (current default) — ignores all =//= trees
-  as well as local =courses.org= and =index.org= files so only the
-  tooling and protocol are tracked.
+  =block-all= (current default) — ignores all course content trees
+  (=source/=, =org-mode/=, =markdown/=) as well as local =courses.org=
+  and =index.org= files so only the tooling and protocol are tracked.
 
   =free-only= — tracks courses with verified free/open licences (e.g.,
   CC BY, CC BY-SA, CC0, MIT, Apache-2.0, GPL) while continuing to block
