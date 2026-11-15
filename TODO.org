@@ -1,0 +1,55 @@
+#+title: Project TODO
+#+startup: overview
+
+Active protocol and conversion pipeline tasks. Reference codes (e.g.
+=O3=, =F3=) point to the decision ledger in =protocol/protocol-org.org=.
+
+* Linting & conformance
+
+** TODO Implement tiered lint levels (=--level 0|1|2=) in =scripts/lint.py= [O3]
+Map validation strictness to the =:STATUS:= lifecycle:
+- Level 0 (=stub=): path validity, required =:PROPERTIES:= keys,
+  =:MATH_FORMAT:= delimiter consistency, local =[[file:...]]= asset links.
+- Level 1 (=draft=): Level 0 + required top-level sections (=D1=),
+  =(first lecture)= / =(last lecture)= boundary sentinels (=D2=),
+  =Summary= subsections (=D4=), code block languages (=G1=), tag spelling
+  (=L1=).
+- Level 2 (=clean=): Level 1 + bidirectional =[[id:...]]= link check
+  (=J1=), major tags verified against =tags.org= (=L1=), captions on
+  externally-licenced figures (=H3=), zero residual conversion macros.
+
+** TODO Add =:MATH_FORMAT:= and boundary sentinel checks to =scripts/lint.py= [D2, E1, F1]
+- Default missing =:MATH_FORMAT:= to =latex= (or auto-insert during
+  Level 0 normalisation).
+- Reject mixed LaTeX (=\(...\)=, =\[...\]=) and Typst (spaced =$ ... $=)
+  delimiters in the same file.
+- Verify =* Prev. lecture= contains =(first lecture)= iff =:PREV:= is
+  empty, and =* Next lecture= contains =(last lecture)= iff =:NEXT:= is
+  empty.
+
+* Conversion pipeline
+
+** TODO Align converter output directory to =<course>/org-mode/= [B1, E1, F1]
+Ensure =scripts/ingest.sh= and =scripts/convert/writer.py= write to
+=<course>/org-mode/= for both dialects, recording =:MATH_FORMAT: latex=
+(default) or =:MATH_FORMAT: typst= in the file header instead of
+splitting into =org-latex/= and =org-typst/=.
+
+** TODO Extend =scripts/convert/lua/latex-to-typst.lua= for math environments [F3]
+Handle =aligned=, =pmatrix=, =bmatrix=, =array=, and =cases= when
+converting with =--math-format typst= so they do not survive as raw
+=\begin{…}= blocks.
+
+* Protocol & Markdown mirror
+
+** TODO Specify custom block and body normalisation rules [D3, D4]
+Tighten =protocol-org.org= around =#+BEGIN_definition= / =theorem= /
+=proof= label syntax, whitespace collapsing, and what =lint.py=
+auto-fixes versus rejects.
+
+** TODO Design and implement the Markdown mirror build [N1]
+Fill in =protocol/protocol-markdown.org= and implement the builder
+mapping =org-mode/= to =markdown/= (resolving =[[id:...]]= links to
+relative paths, mapping theorem/definition blocks, and converting any
+=:MATH_FORMAT: typst= files to KaTeX/MathJax delimiters).
+
