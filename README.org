@@ -3,7 +3,7 @@
 
 A deterministic conversion pipeline and Org-mode schema for turning
 heterogeneous open-source lecture notes (LaTeX, Jupyter Book, mdBook,
-and Markdown) into a uniform Org-mode or Markdown file structure.
+and Markdown) into a uniform org-mode or Markdown file structure.
 
 At this stage, this repository tracks only the conversion tooling,
 protocol specification, and licence-auditing scripts. Converted course

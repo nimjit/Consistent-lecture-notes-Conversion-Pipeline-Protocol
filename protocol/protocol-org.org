@@ -23,7 +23,7 @@ done if anyone other than me is actually interested in this conversion.
 * Project layout
 
 #+begin_example
-TU Delft Lecture Notes Wiki Project/
+Lecture Notes Wiki Project/
 ├── index.org               — generated: lists every course (K2)
 ├── courses.org             — the single course registry (licence-tracked)
 ├── tags.org                — controlled major-tag vocabulary (L1)
@@ -203,9 +203,6 @@ A project-wide =scripts/preamble.typ= holds every macro / command
 definition (F4) and is imported by the Typst build.
 
 Renderer note. The primary consumer is the author's Emacs Typst renderer.
-If and when the renderer gains native support for =#+BEGIN_math= org
-blocks, revisit F2 — the current choice uses plain =$ ... $= because it
-works with any Typst-aware tool.
 
 ** Known conversion limitations
 
