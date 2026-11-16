@@ -1,176 +1,282 @@
 #+title: Protocol — org-mode wiki
 #+startup: overview
 
-The authoritative rules for how org-mode material in this wiki is written
-and organised. Sibling files:
+* Scope
 
-- =protocol-markdown.org= — the public markdown mirror. Inherits every rule
-  here except where it says otherwise. Currently a stub.
-- =source-formats.org= — a *reference* describing the upstream formats found
-  in =source/= trees (Jupyter Book, mdbook, …). Not governed by this
-  protocol; this protocol only governs =org-mode/=.
+This document specifies the org-mode form of the lecture-notes wiki:
+directory layout, file naming, per-file metadata, section structure, and
+the conventions for maths, code, assets, links and tags. It is the
+authoritative reference for *producers* (authors and converters) and
+*consumers* (the linter, index generators, org-roam, Markdown builders).
 
-Every rule carries a parenthesised code (A1, B3, …) back to the design
-question that set it. The full decision ledger is at the end of this file.
+It specifies what a conforming wiki looks like. It does not specify
+tooling.
 
-* Status
+Sibling documents:
 
-Draft 1. The org-mode conversion works reasonably for LaTeX maths,
-but still has issues converting cleanly without information-loss
-to typst. markdown conversion is not yet handled, this will be
-done if anyone other than me is actually interested in this conversion.
+- =protocol-markdown.org= — the public Markdown mirror. Inherits every
+  rule here except where it says otherwise. Currently a stub.
+- =source-formats.org= — informative reference for the upstream formats
+  found in =source/= trees (Jupyter Book, mdBook, …). Not governed by this
+  protocol; this protocol governs =org-mode= only.
+
+Document status: protocol version 1, draft 2. See [[*Revision history]].
+
+* Conventions
+
+** Requirement levels
+
+The words MUST, MUST NOT, REQUIRED, SHOULD, SHOULD NOT and MAY, when
+written in upper case, are to be interpreted as in RFC 2119. In lower
+case they carry their ordinary meaning.
+
+** Codes and rule IDs
+
+Every rule carries a parenthesised /ledger code/ (A1, D3, …) tracing it
+to the [[*Decision ledger]]. Checks in [[*Conformance levels]] carry /rule
+IDs/ (NAM-01, SEC-02, …).
+
+** Notation
+
+- =<angle brackets>= mark a placeholder.
+- =a | b= marks alternatives.
+- Grammars use ABNF (RFC 5234).
+- Paragraphs beginning /Note./ are non-normative.
+
+* Terminology
+
+| Term            | Meaning                                                                                      |
+|-----------------+----------------------------------------------------------------------------------------------|
+| wiki            | The whole project tree.                                                                      |
+| domain          | A top-level directory grouping courses (=physics/=, …).                                        |
+| course          | A directory =<domain>/<course-slug>/=.                                                         |
+| lecture file    | A file with =:TYPE: lecture=.                                                                  |
+| assignment file | A file with =:TYPE: assignment=.                                                               |
+| node            | A file as seen by org-roam. Every lecture, assignment and own-notes file is a node (J5).     |
+| producer        | A person or tool that writes files.                                                          |
+| consumer        | A tool that reads files.                                                                     |
+| dialect         | The maths syntax a file uses: =latex= or =typst= (F5).                                           |
+| level           | A conformance level, 0 to 2 (O3).                                                            |
+
+* Version and extensibility
+
+** Protocol version (R1)
+
+This document defines protocol version 1. A course =README.org= SHOULD
+declare the version it conforms to in =:PROTOCOL:=. A consumer MUST treat
+an absent =:PROTOCOL:= as =1=. A backward-incompatible change increments
+the integer; a compatible addition does not.
+
+** Unknown properties (R2)
+
+A consumer MUST ignore properties it does not define and MUST preserve
+them when it rewrites a file. A producer MAY add properties; their names
+SHOULD be upper case with underscores. A producer MUST NOT reuse a
+property name defined here with a different meaning.
 
 * Project layout
 
 #+begin_example
 Lecture Notes Wiki Project/
 ├── index.org               — generated: lists every course (K2)
-├── courses.org             — the single course registry (licence-tracked)
+├── courses.org             — generated course registry, licence-tracked (A2)
 ├── tags.org                — controlled major-tag vocabulary (L1)
-├── protocol/
-│   ├── protocol-org.org    — this file
-│   ├── protocol-markdown.org
-│   └── source-formats.org
-├── scripts/
-│   ├── nb2md.py            — notebook → markdown
-│   ├── pull-courses.sh     — one-off upstream fetch
-│   ├── preamble.typ        — project-wide Typst macros (F4)
-│   ├── gen-index.*         — index generators (K1, K2)
-│   └── lint.*              — the lint script (O1)
+├── protocol/               — this protocol and its siblings (A4)
+├── scripts/                — tooling; not part of the protocol (A3)
 ├── <domain>/               — physics/, computing/, mathematics/, …
 │   └── <course-slug>/
-│       ├── README.org
-│       ├── source/         — upstream verbatim (optional)
-│       ├── org-mode/       — the org wiki form (optional)
-│       └── markdown/       — the markdown mirror (optional)
 └── …
 #+end_example
 
-Courses are grouped by *domain* (A1). A domain directory holds nothing
-but course directories. The project-wide =index.org= is generated by a
-script and should never be edited by hand (K2).
-
-Protocol files live in =protocol/= (A4). Tooling lives in =scripts/= (A3).
+- A domain directory MUST contain only course directories (A1).
+- =index.org= and =courses.org= are generated. They MUST NOT be edited by
+  hand (K2).
+- A project-wide =scripts/preamble.typ= MAY define Typst macros (F4).
 
 * Per-course layout
 
-A course directory can contain any of three subdirectories; all are
-optional (B1 — fixed names, extras allowed). Which are present depends
-on the course's provenance:
+A course directory has this shape:
 
-| Subdir    | Purpose                                                           |
-|-----------+-------------------------------------------------------------------|
-| =source/=   | Upstream material (mdbook, Jupyter Book, notebooks, …), verbatim. |
-| =org-mode/= | The org wiki form. The primary artifact; what you edit.           |
-| =markdown/= | The markdown mirror. Future public form, or direct nb→md output.  |
+| Entry                               | Req. | Purpose                                    |
+|-------------------------------------+------+--------------------------------------------|
+| =README.org=                          | MUST | Course-level metadata. See [[*Course README]]. |
+| =source/=                             | MAY  | Upstream material, verbatim.               |
+| =org-latex/= or =org-typst=             | MAY  | The org wiki form.                         |
+| =markdown-latex/=  or =markdown-typst/= | MAY  | The Markdown form.                         |
 
-A =README.org= at the course root is the single source of truth for
-course-level metadata (B2): course name, short code, upstream URL,
-licence, status.
+The three subdirectory names are fixed. A course MAY contain other
+entries, which consumers MUST ignore (B1).
 
-Inside =org-mode/=:
+Inside =org-latex/=:
 
 #+begin_example
-<course>/org-mode/
-├── index.org              — generated course TOC (K1)
+<course>/org-latex/
+├── index.org              — generated course table of contents (K1)
 ├── lectures/
 │   └── <short>-NN-slug.org
-├── assignments/            — optional
+├── assignments/           — present only if the course has assignments
 │   └── <short>-NN-assignment.org
 └── assets/
-    ├── attachments/        — figures, diagrams, images (H1)
-    └── code/               — mirrored course-shipped code (B4, H1)
+    ├── attachments/       — figures, diagrams, images (H1)
+    └── code/              — course-shipped code, mirrored (B4, H1)
 #+end_example
 
-Lectures and assignments live in separate subtrees (B3). The =assets/=
-directory splits attachments and code (H1).
+- Lecture files and own-notes files MUST be in =lectures/=. Assignment
+  files MUST be in =assignments/= (B3, M2).
+- A course without assignments MUST NOT have an =assignments/= directory
+  (I2).
+- =org-latex/index.org= is generated and MUST NOT be edited by hand (K1).
+
+** Course README
+
+=README.org= at the course root is the single source of truth for
+course-level metadata (B2, E2, E5). The metadata is in a file-level
+property drawer:
+
+| Property        | Req.                         | Value                                              |
+|-----------------+------------------------------+----------------------------------------------------|
+| =:COURSE:=        | MUST                         | Full course name.                                  |
+| =:COURSE_SHORT:=  | MUST                         | Short code (see [[*File naming]]).                   |
+| =:STATUS:=        | MUST                         | =stub \vert draft \vert clean=; see [[*Status (S1, S2)]]. |
+| =:PROTOCOL:=      | SHOULD                       | Protocol version (R1).                             |
+| =:UPSTREAM_URL:=  | MUST if the course has an upstream | URL of the upstream repository.              |
+| =:LICENCE:=       | MUST                         | An SPDX licence identifier where one exists.       |
+| =:AUTHOR:=        | MUST                         | Upstream author or origin; for own-notes the notes' author (M2). |
+| =:IMPORTED:=      | MUST if =source/= exists       | Import date, ISO 8601.                             |
+
+The body of =README.org= is free-form.
 
 * File naming
 
-Lowercase, hyphenated, full words — everywhere (C4). Reasons:
+All file and directory names are lowercase, hyphenated, full words (C4).
 
-- URL-safe when the wiki is published (no spaces, no case issues)
-- Case-insensitive-filesystem-safe (macOS defaults, Windows)
-- No shell escaping or quoting
-- Git-, static-site-generator- and Obsidian-friendly
+/Note./ This keeps names URL-safe, safe on case-insensitive filesystems
+(macOS and Windows defaults), free of shell quoting, and friendly to Git,
+static-site generators and Obsidian.
 
-** Course folders (C5)
+** Course directories (C5)
 
-Format: =<domain>/<course-slug>/= where =<course-slug>= is the course
-title as a lowercase hyphenated slug.
+=<course-slug>= is the course title as a lowercase hyphenated slug.
+Example: =physics/super-duper-advanced-quantum-quantum-quantum/=.
 
-Example: =physics/classical-mechanics-and-special-relativity/=.
+** Lecture, own-notes and assignment files (C1, C2, C3, C6)
 
-** Lecture / assignment files (C1, C2)
+#+begin_example
+lecture-file    = short "-" number [ part ] "-" slug ".org"
+assignment-file = short "-" number "-assignment.org"
+short           = word *( "-" word )     ; the declared :COURSE_SHORT:
+number          = 2DIGIT                 ; zero-padded
+part            = %x61-7A                ; one lowercase letter, multi-part lectures
+slug            = word *4( "-" word )    ; 1 to 5 words
+word            = 1*( %x61-7A / DIGIT )  ; lowercase ASCII letters and digits
+#+end_example
 
-Pattern: =<short>-NN-slug.org=.
+- =short= is the course's short code, declared in the course
+  =README.org=. It makes a filename self-identifying when a file is moved
+  out of its tree. And improves legibility of filenames for long course names.
+  Examples: =cmsr=, =comp-phys=, =sf=, =oop-cpp=.
+- =short= MUST be unique across the wiki. When two courses would collide
+  at the obvious abbreviation (/Applications of Quantum Mechanics/ and
+  /Advanced Quantum Mechanics/ both want =aqm=), disambiguate explicitly:
+  =ap-qm= and =ad-qm=. Resolve the collision when adding the second
+  course; do not rename the first unless the collision has shipped.
+- Multi-part lectures use letter suffixes: =<short>-04a-slug.org=,
+  =<short>-04b-slug.org=.
+- Assignments are lecture-aligned (I3): the assignment for lecture =NN=
+  is =<short>-NN-assignment.org=. Its slug is always =assignment=, whatever
+  the lecture's slug is.
 
-- =<short>= — the course's short code, declared in the course =README.org=.
-  Short codes are what make the filename self-identifying when a file is
-  moved out of its tree. Lowercase hyphenated, per C4. Examples: =cmsr=,
-  =comp-phys=, =sf=, =oop-cpp=.
+Valid: =cmsr-04-lagrangian-mechanics.org=, =cmsr-04a-noether-theorem.org=,
+=comp-phys-12-monte-carlo.org=. Invalid: =CMSR-04-x.org= (case),
+=cmsr-4-x.org= (width), =cmsr-04-lagrangian_mechanics.org= (underscore).
 
-  When two courses would collide at the obvious abbreviation
-  (/Applications of Quantum Mechanics/ and /Advanced Quantum Mechanics/
-  would both want =aqm=), disambiguate explicitly: =ap-qm= and =ad-qm=.
-  Resolve the collision when adding the second course; do not rename the
-  first retroactively unless the collision has shipped.
-- =NN= — zero-padded 2-digit number (C2). Enough for every course we expect.
-- =slug= — a short slug (1–5 words) derived from the lecture title.
+** Sequence order (C7)
 
-Multi-part lectures use letter suffixes: =<short>-04a-slug.org= and
-=<short>-04b-slug.org= (C3).
-
-Assignments are *lecture-aligned* (I3). The assignment for lecture =NN=
-uses the matching number: =<short>-NN-assignment.org= (the slug may
-differ from the lecture's).
+Files of one =TYPE= within a course are ordered by =number= (numeric),
+then by =part= (absent before =a=, then alphabetical). =:PREV:= and
+=:NEXT:= follow this order.
 
 * Frontmatter
 
-Every lecture or assignment file carries at minimum (E1):
+Every lecture, own-notes and assignment file MUST begin with a file-level
+property drawer, followed by a =#+title:= keyword (E4):
 
 #+begin_src org
 :PROPERTIES:
-:ID:           <org-id, used as the roam id (J1, J5)>
+:ID:           <org-id>
 :COURSE:       <full course name>
 :COURSE_SHORT: <short code>
 :TYPE:         lecture | assignment | own-notes
-:NUMBER:       <int, matching filename>
+:NUMBER:       <int>
 :PREV:         <id or empty>
 :NEXT:         <id or empty>
 :STATUS:       stub | draft | clean
 :TAGS:         <space-separated tag list>
+:MATH_FORMAT:  latex | typst
 :END:
+#+title: <title>
 #+end_src
 
-Licence and upstream URL are *per course only* (E3, M1); they live in
-the course =README.org=, never on individual files. =TYPE: own-notes=
-flags a file written by the author while attending a course (M2); the
-=README.org= names the author and course context.
+| Property       | Req. | Constraint                                                                                          |
+|----------------+------+-----------------------------------------------------------------------------------------------------|
+| =:ID:=           | MUST | An org-id, unique across the wiki. Also the org-roam id (J1, J5). Once assigned it MUST NOT change. |
+| =:COURSE:=       | MUST | Equal to the course =README.org= =:COURSE:=.                                                            |
+| =:COURSE_SHORT:= | MUST | Equal to the course =README.org= =:COURSE_SHORT:= and to the filename's =short=.                          |
+| =:TYPE:=         | MUST | Lecture, Assignment, or own-notes. Agrees with the subtree (B3, M2).                                |
+| =:NUMBER:=       | MUST | Integer equal to the filename's =number=, without the =part= suffix.                                    |
+| =:PREV:=, =:NEXT:= | MUST | The =:ID:= of the adjacent file of the same =TYPE= (C7), or empty at the ends of the chain.             |
+| =:STATUS:=       | MUST | Stub, draft, or clean. See [[*Status (S1, S2)]].                                                        |
+| =:TAGS:=         | MUST | Space-separated tags; MAY be empty. See [[*Tags]].                                                      |
+| =:MATH_FORMAT:=  | MUST | Latex, or Typst. See [[*Maths]]. (F5).                    |
 
-* Section structure of a lecture note
+Licence and upstream URL are recorded per course in the course
+=README.org=, which is authoritative (E3, M1). A producer MAY copy
+=:LICENCE:=, =:UPSTREAM_URL:= and =:AUTHOR:= into a file's drawer for
+portability. Where present they MUST agree with the course
+=README.org=, which prevails on disagreement.
 
-Required top-level sections (D1):
+=:TYPE: own-notes= flags a file written by the author while attending a
+course (M2). Own-notes files follow every rule for lecture files.
 
-1. =Prev. lecture= — a human-visible section rendering the PREV link.
-2. =Content= — the lecture body.
-3. =Summary= — see below.
-4. =Next lecture= — human-visible section rendering the NEXT link.
+* Section structure of a lecture file
 
-Prev/next appear both in frontmatter and as sections (D2). The sections
-exist for human readers; the frontmatter exists for tooling.
+Lecture and own-notes files MUST have these top-level headings, with
+exactly this text, in this order (D1):
 
-** Summary subsection shape (D4)
+| # | Heading           | Content                                              |
+|---+-------------------+------------------------------------------------------|
+| 1 | =Prev. lecture=     | A rendering of the =:PREV:= link.                      |
+| 2 | =Content=           | The lecture body.                                    |
+| 3 | =Summary=           | See below.                                           |
+| 4 | =Next lecture=      | A rendering of the =:NEXT:= link.                      |
 
-The Summary section contains, in order:
+** Prev/next sections and boundary sentinels (D2)
 
-1. *Recap* — 3–5 bullet points.
-2. *Concepts introduced* — a list of named concepts for later
-   cross-linking. One phrase per line.
+Prev/next appear both as properties, for tooling, and as sections, for
+human readers.
 
-* Definitions, theorems, proofs
+- If =:PREV:= is non-empty, the =Prev. lecture= body MUST contain a link
+  =[[id:<PREV>][<title>]]=. If it is empty, the body MUST contain the text
+  =(first lecture)=. The text =(first lecture)= MUST NOT appear otherwise.
+- If =:NEXT:= is non-empty, the =Next lecture= body MUST contain a link
+  =[[id:<NEXT>][<title>]]=. If it is empty, the body MUST contain the text
+  =(last lecture)=. The text =(last lecture)= MUST NOT appear otherwise.
 
-Marked with custom org blocks (D3):
+** Summary (D4)
+
+=Summary= MUST contain two second-level headings, in order:
+
+1. =Recap= — 3 to 5 bullet points.
+2. =Concepts introduced= — a list of named concepts for later
+   cross-linking, one phrase per list item.
+
+/Note./ Upstream notes do not contain summaries or concept lists, so a
+converter cannot create them. They are written by hand, and =:STATUS:=
+records how far a file has got.
+
+* Definitions, theorems, proofs (D3)
+
+Marked with custom org blocks:
 
 #+begin_example
 #+BEGIN_definition <name>
@@ -186,260 +292,352 @@ Marked with custom org blocks (D3):
 #+END_proof
 #+end_example
 
-The name after the keyword is the human-readable label; renderers can
-show it and the lint/build scripts can index it.
+- The block type is lowercase: =definition=, =theorem=, =proof=. =BEGIN= and
+  =END= MUST match.
+- =definition= and =theorem= blocks MUST have a name. A =proof= block
+  SHOULD name what it proves.
+- The text after the keyword is the human-readable label. Renderers MAY
+  show it and tools MAY index it.
 
-* Maths — Typst
+* Maths
 
-The wiki writes math in *Typst syntax* and nothing else (F3). LaTeX in
-the org tree is forbidden; LaTeX found in imported upstream is converted
-at import time.
+** Dialects (F5)
 
-- Inline: =$x^2$= — content flush against the delimiters.
-- Block: =$ x^2 $= — content spaced from the delimiters (Typst's
-  convention for display math).
+A file's maths is written in exactly one dialect, declared by
+=:MATH_FORMAT:=. A file MUST NOT use the delimiters of the other dialect.
 
-A project-wide =scripts/preamble.typ= holds every macro / command
-definition (F4) and is imported by the Typst build.
+| Dialect | Inline (F1)             | Display (F2)               |
+|---------+-------------------------+----------------------------|
+| =latex=   | =\(x^2\)=                 | =\[ x^2 \]=                  |
+| =typst=   | =$x^2$=                   | =$ x^2 $=                    |
 
-Renderer note. The primary consumer is the author's Emacs Typst renderer.
+** =latex= (default)
 
-** Known conversion limitations
+- Inline math MUST use =\(…\)= and display math =\[…\]=. The dollar
+  delimiters =$…$= and =$$…$$= MUST NOT be used as math delimiters.
+- Display math MAY use LaTeX environments (=\begin{align}…\end{align}=).
 
-Residual LaTeX that =scripts/convert/= doesn't yet translate cleanly;
-pass over converted files and fix by hand, or extend the Lua filter at
-=scripts/convert/lua/latex-to-typst.lua=:
+** =typst=
 
-- *Vector / operator ornaments.* The converter emits Typst primitives
-  directly: =arrow(x)= for =\vec{x}=, =bold(x)= for =\mathbf{x}=,
-  =hat(x)= for =\hat{x}=, =bb(R)= for =\mathbb{R}=, =cal(X)= for
-  =\mathcal{X}=. No =scripts/preamble.typ= dependency; the output
-  renders standalone. (Earlier versions emitted =vb(x)= / =op(x)= / =RR=
-  that relied on preamble aliases; those have been retired.)
-- *=\begin{…}= / =\end{…}= environments.* LaTeX math environments
-  (=aligned=, =pmatrix=, =bmatrix=, =array=, =cases=, …) survive as
-  literal text because the Lua filter is name-level, not
-  environment-aware. Convert to Typst =mat()= / =cases()= / aligned
-  blocks by hand until the filter is extended.
-- *Other unknown macros* get stubbed to their bare name (e.g. =\text=
-  → =text=) with the backslash stripped. Grep converted files for
-  =\\[A-Za-z]+= to find them; add to the KNOWN table in the Lua filter
-  when a pattern recurs.
-- *Implicit multiplication of single letters.* LaTeX relies on math-mode
-  auto-spacing to render =\int fdz= as "∫ f d z". After conversion the
-  three letters stay fused as the single Typst identifier =fdz=.
-  There is no safe heuristic to split (not every =foo= is three
-  variables), so clean these by hand to =f d z= or =f dif z=.
+- Inline math is delimited by =$= with the content flush against both
+  delimiters: =$x^2$=.
+- Display math is delimited by =$= with whitespace (a space or newline)
+  after the opening and before the closing delimiter: =$ x^2 $=.
+- Whitespace on only one side is malformed and MUST NOT occur.
+- A =typst= file MUST NOT contain LaTeX math delimiters or environments
+  (F3).
 
-* Code blocks
+** Macros (F4)
 
-- Language annotation is *required* on every block (G1):
-  =#+BEGIN_SRC rust=.
-- Snippets are executable via org-babel where sensible (G2). Larger
-  curriculum code lives as files under =org-mode/assets/code/= (B4).
-- =#+RESULTS= blocks are *not stored* (G3). Readers run the code.
+A project-wide =scripts/preamble.typ= MAY define Typst macros and is
+imported by the Typst build. A converter MUST emit Typst that renders
+without it.
+
+** Converting between dialects (F3)
+
+LaTeX found in imported upstream material MAY be converted to =typst= at
+import time. A producer that does so MUST set =:MATH_FORMAT: typst=. A
+producer that does not convert MUST set =:MATH_FORMAT: latex=.
+
+* Code blocks (G1, G2, G3, B4)
+
+- Every source block MUST name its language: =#+BEGIN_SRC rust= (G1).
+- Snippets SHOULD be executable via org-babel where sensible (G2).
+- =#+RESULTS= blocks MUST NOT be stored (G3). Readers run the code.
+- Larger curriculum code lives as files under =org-mode/assets/code/=
+  (B4).
 
 * Assets
 
-** Layout
+** Layout (H1)
 
-#+begin_example
-<course>/org-mode/assets/
-├── attachments/   — figures, diagrams, images (H1)
-└── code/          — course-shipped example code (B4, H1)
-#+end_example
+Figures, diagrams and images are in =org-mode/assets/attachments/=.
+Course-shipped code is in =org-mode/assets/code/=.
 
 ** Naming and reference form (H2)
 
-File names are descriptive slugs (e.g. =feynman-diagram-tree-level.svg=),
-not tied to the lecture number. Lecture files reference assets by
-relative file path:
+File names are descriptive slugs (C4), such as
+=feynman-diagram-tree-level.svg=, and are not tied to the lecture number.
+Lecture files MUST reference assets by relative file path:
 
 #+begin_example
 [[file:../assets/attachments/feynman-diagram-tree-level.svg]]
 #+end_example
 
-This renders inline in Emacs via =C-c C-x C-v= (=org-toggle-inline-images=)
-without any project-level configuration. Chosen over =[[attachment:…]]=
-because the latter requires wiring =org-attach= to the shared
-=assets/attachments/= dir, and because the id-stability justification the
-=attachment:= form was meant to provide isn't actually delivered when the
-link uses the filename rather than the attachment id.
+/Note./ This renders inline in Emacs via =C-c C-x C-v=
+(=org-toggle-inline-images=) with no project configuration. It is chosen
+over =[[attachment:…]]=, which requires wiring =org-attach= to the shared
+=assets/attachments/= directory, and whose id-stability benefit is not
+delivered when the link uses a file name rather than an attachment id.
 
 ** Captions (H3)
 
-A =#+CAPTION:= line immediately above the =[[file:…]]= link is *required
-for figures sourced from externally-licenced material*. Captions on
-original figures are optional but encouraged. Add =#+NAME:= by hand only
-when a figure needs to be cross-referenced from within the same file.
+A =#+CAPTION:= line immediately above the =[[file:…]]= link is REQUIRED
+for every figure in a file whose course has an =:UPSTREAM_URL:=, unless
+the file's =:TYPE:= is =own-notes=. Elsewhere captions are OPTIONAL but
+encouraged. =#+NAME:= SHOULD be added only when a figure is
+cross-referenced from within the same file.
 
-** No PDFs in the wiki (H4)
+** No PDFs (H4)
 
-Lecture notes do not store or link to local PDFs of textbooks or papers.
-External works are referenced by *URL only* — a =doi.org= link, publisher
-page, arXiv link, etc. Local PDF libraries live elsewhere
-(=~/org/library/=) and are not linked from inside the wiki.
+Files MUST NOT store or link to local PDFs of textbooks or papers.
+External works are referenced by URL only: a =doi.org= link, publisher
+page, arXiv link, etc. Local PDF libraries live outside the wiki.
 
-* Assignments
+* Assignments (I1, I2, I3)
 
-Dedicated template (I1):
+An assignment file MUST have these top-level headings, in this order:
 
-#+begin_src org
-;* Problem statement
-...
+| Heading               | Req.   |
+|-----------------------+--------|
+| =Problem statement=     | MUST   |
+| =Solution=              | MAY    |
+| =Reflection=            | MUST   |
 
-;* Solution
-...
-
-;* Reflection
-...
-#+end_src
-
-Both the assignments subtree itself and the =* Solution= section are
-optional (I2). A course without assignments has no =assignments/=
-subdirectory. An assignment file may omit =* Solution= when the course
-distributes an official solution; link to it from =* Reflection= instead.
+An assignment MAY omit =Solution= when the course distributes an official
+solution; =Reflection= SHOULD then link to it. Assignments are
+lecture-aligned (I3).
 
 * Links
 
-| Target                           | Form                           | Rule            |
-|----------------------------------+--------------------------------+-----------------|
-| Lecture → lecture (same course)  | =[[id:...][...]]=                | J1              |
-| Lecture → lecture (cross-course) | =[[id:...][...]]=                | J3; discouraged |
-| Section inside a file            | =[[file:<path>::*Heading][...]]= | J2              |
-| External resource                | plain URL                      | J4              |
+| Target                           | Form                              | Code            |
+|----------------------------------+-----------------------------------+-----------------|
+| Lecture → lecture (same course)  | =[[id:<ID>][<text>]]=               | J1              |
+| Lecture → lecture (cross-course) | =[[id:<ID>][<text>]]=               | J3; discouraged |
+| Section inside a file            | =[[file:<path>::*Heading][<text>]]= | J2              |
+| External resource                | plain URL                         | J4              |
 
-Backlinks are tracked by *org-roam* (J5). Every lecture and assignment
-file is an org-roam node; the file's =:ID:= is also its roam id.
-
-Cross-course links use the same =id:= form as intra-course links but are
-*discouraged* in v1: use them only where a concept genuinely spans
-courses, not for incidental mentions.
+- Backlinks are tracked by org-roam (J5). Every lecture, assignment and
+  own-notes file is a node, and its =:ID:= is its roam id.
+- Cross-course links are discouraged in version 1. Use them only where a
+  concept genuinely spans courses, not for incidental mentions.
 
 * Tags
 
 ** Vocabulary (L1)
 
-- *Major tags* — declared in =tags.org= at the project root. A controlled
-  set, enforced by the linter.
-- *Minor tags* — free-form, grown by use.
+- *Major tags* are declared in =tags.org= at the project root, which is the
+  authoritative list. Adding a major tag is a protocol change.
+- *Minor tags* are free-form and grown by use.
 
-** Spelling rules (L1)
+** Spelling (L1)
 
-Every tag — major or minor — is written as *full words, lowercase,
-hyphenated*. The linter rejects abbreviations, capitals, and underscores.
+Every tag, major or minor, MUST match:
 
-** Scope (L2)
+#+begin_example
+tag  = word *( "-" word )
+word = 1*( %x61-7A / DIGIT )
+#+end_example
 
-Standard org tag inheritance. File-level tags apply to every heading;
-headings may add tags that apply to themselves and descendants.
+Tags SHOULD be full words, not abbreviations.
 
-* Indices
+** Scope and org syntax (L2)
 
-- Per-course =index.org= — generated from the file list + frontmatter (K1).
-  The course =README.org= names the course; =index.org= is the navigation
-  tree.
-- Project-wide =index.org= at the root — generated from the per-course
-  =README.org= files (K2).
+Standard org tag inheritance applies. File-level tags apply to every
+heading; headings MAY add tags that apply to themselves and their
+descendants.
 
-Both generators are scripts under =scripts/=. Do not hand-edit either
-index file.
+Org tag syntax does not permit hyphens. In org tag position (=#+FILETAGS:=
+or a heading's =:tag:= suffix), =-= is written =_=, and =a_b= denotes the
+same tag as =a-b=. The =:TAGS:= property uses the hyphenated spelling.
 
-* Treatment of =source/= (upstream)
+* Indices (K1, K2)
 
-- =source/= is a *verbatim mirror* (P1) and a *frozen snapshot* (P2).
-- No edits — not even stripping IDE junk or OS metadata. Live with the
-  clutter.
-- Upstream URL, licence, author attribution, import date all live in the
-  course =README.org= (B2, M1). Nothing is added inside =source/=.
-- There is no sync workflow (P2). To update a course, replace =source/=
+- The per-course =org-mode/index.org= is generated from the file list and
+  frontmatter. The course =README.org= names the course; =index.org= is the
+  navigation tree.
+- The project-wide =index.org= is generated from the per-course
+  =README.org= files.
+- An index MUST NOT be edited by hand.
+
+* Treatment of =source/= (P1, P2, M1)
+
+- =source/= is a verbatim mirror (P1) and a frozen snapshot (P2).
+- Nothing in it may be edited, including IDE junk and OS metadata.
+- Upstream URL, licence, author and import date are recorded in the course
+  =README.org= only. Nothing is added inside =source/=.
+- There is no sync workflow. To update a course, replace =source/=
   wholesale.
 
-* Build to markdown
+* Build to Markdown (N1, N2, N3)
 
-Generator deferred (N1). When filled in, see =protocol-markdown.org=.
+The generator is deferred (N1); see =protocol-markdown.org=.
 
-- Builds run *on demand* (N2) — no automatic git hook, no CI (yet).
-- The Obsidian vault form mirrors the org tree exactly (N3): same
-  folders, same filenames with =.md= extension.
+- Builds run on demand (N2): no automatic hook, no CI.
+- The Obsidian vault form mirrors the org tree exactly (N3): the same
+  folders and file names, with the =.md= extension.
 
-* Linting
+* Conformance levels
 
-Form: both a prose checklist (this section) and an executable script
-under =scripts/= that implements it (O1).
+** Status (S1, S2)
 
-Checks (O2):
+=:STATUS:= records the conformance level a file claims:
 
-- *Frontmatter completeness* — every required field (E1) is present on
-  every lecture / assignment file. Covers "licence recorded" implicitly:
-  the file's =COURSE= points at a =README.org= with a =LICENCE=.
-- *Working links* — every =id:= and =file:= link resolves.
-- *Required sections present* — Prev. lecture / Content / Summary /
-  Next lecture on every lecture file (D1).
-- *Filename ↔ frontmatter* — the filename pattern =<short>-NN-slug= agrees
-  with =COURSE_SHORT= and =NUMBER= in the file's frontmatter; =TYPE=
-  matches which subtree the file is in.
-- *Tag discipline* — every tag is lowercase, hyphenated, full words; every
-  major tag appears in =tags.org=.
+| =:STATUS:= | Level | Meaning                                    |
+|----------+-------+--------------------------------------------|
+| =stub=     |     0 | Addressable: valid paths, metadata, links. |
+| =draft=    |     1 | Structurally complete.                     |
+| =clean=    |     2 | Verified and cross-linked.                 |
+
+Levels are cumulative: level 1 includes every rule of level 0, and level 2
+every rule of levels 0 and 1.
+
+- A file declaring =:STATUS: s= MUST satisfy every rule of level(s) and
+  below. A producer MUST NOT write a =:STATUS:= whose rules the file does
+  not satisfy.
+- A course's =:STATUS:= (in its =README.org=) MUST NOT be higher than the
+  lowest =:STATUS:= among its files (S2).
+
+** Rules (O3)
+
+| ID     | Level | Requirement                                                                                                    | Code       |
+|--------+-------+----------------------------------------------------------------------------------------------------------------+------------|
+| LAY-01 |     0 | The course directory is =<domain>/<course-slug>/=, has a lowercase hyphenated slug.                              | A1, B2, C5 |
+| LAY-02 |     0 | Lecture and own-notes files are in =lectures/=; assignment files are in =assignments/=.                            | B3, M2     |
+| NAM-01 |     0 | The file name matches the grammar in [[*File naming]], using the declared =short=.                                   | C1, C2, C3 |
+| NAM-02 |     0 | The file name agrees with =:COURSE_SHORT:= and =:NUMBER:=; the subtree agrees with =:TYPE:=.                         | O2         |
+| FRM-01 |     0 | A file-level drawer is present with every REQUIRED property, followed by =#+title:=.                             | E1, E4     |
+| FRM-02 |     0 | =:ID:= values are unique across the wiki.                                                                        | E1         |
+| FRM-03 |     0 | =:TYPE:=, =:STATUS:= and =:MATH_FORMAT:= hold permitted values.                                                      | E1, F5     |
+| FRM-04 |     0 | =:COURSE:= and =:COURSE_SHORT:= agree with the course =README.org=.                                                  | E2         |
+| FRM-05 |     0 | The course =:STATUS:= is not higher than the lowest file =:STATUS:=.                                               | S2         |
+| MTH-01 |     0 | A file contains only the maths delimiters of its declared dialect.                                             | F1, F2, F5 |
+| AST-01 |     0 | Every =[[file:…]]= link resolves to an existing file.                                                            | H2         |
+| SEC-01 |     1 | Lecture and own-notes files have the four required headings, in order.                                         | D1         |
+| SEC-02 |     1 | The boundary-sentinel rules hold.                                                                              | D2         |
+| SEC-03 |     1 | =Summary= contains =Recap= then =Concepts introduced=.                                                               | D4         |
+| SEC-04 |     1 | Assignment files have =Problem statement= and =Reflection=, with =Solution= between them if present.                 | I1, I2     |
+| BLK-01 |     1 | Custom blocks have matching =BEGIN=/=END= and a name where required.                                             | D3         |
+| COD-01 |     1 | Every source block names a language.                                                                           | G1         |
+| TAG-01 |     1 | Every tag matches the spelling grammar.                                                                        | L1         |
+| LNK-01 |     2 | Every =[[id:…]]= link resolves to a node.                                                                        | J1         |
+| LNK-02 |     2 | =:PREV:= and =:NEXT:= are reciprocal, and follow the sequence order.                                               | D2, C7     |
+| TAG-02 |     2 | No tag is a near-miss spelling of a major tag in =tags.org= (equal after lowercasing and removing "-,_, ").      | L1         |
+| AST-02 |     2 | Every figure carries =#+CAPTION:= where [[*Captions (H3)]] requires it.                                              | H3         |
+| MTH-02 |     2 | A =typst= file has no residual LaTeX: no =\begin{…}= and no =\<letters>= command in maths.                           | F3         |
+
+** Linter behaviour (O3, S3, O4)
+
+- =lint --level N= checks every file against all rules of level N and
+  below, regardless of =:STATUS:=.
+- =lint= with no level checks each file against the level of its own
+  =:STATUS:= (S3).
+- A diagnostic SHOULD be reported as =<path>:<line>: <rule-id>: <message>=
+  (O4).
+
+* Reserved for later revisions
+
+The following are unspecified in version 1. Producers MUST NOT assume a
+behaviour for them.
+
+- Block types beyond =definition=, =theorem= and =proof=, and body
+  normalisation (whitespace, auto-fix versus reject) (D3, D4).
+- Language-specific rules for code blocks that must work together (G2).
+- The Markdown mirror (N1).
 
 * Decision ledger
 
 Keyed back to the questions that set each rule. When the protocol
-changes, update this table too.
+changes, update this table too. =[rev. 2]= marks a decision revised in
+draft 2; =[new]= marks one added in draft 2.
 
-| Code | Decision                        | Choice                                                                           |
-|------+---------------------------------+----------------------------------------------------------------------------------|
-| A1   | Course grouping                 | By domain (=physics/=, =computing/=, …)                                              |
-| A2   | Project-wide index              | Single =index.org= at root                                                         |
-| A3   | Scripts location                | =scripts/=                                                                         |
-| A4   | Protocol files location         | =protocol/=                                                                        |
-| B1   | Per-course subdirs              | Fixed names =source/= / =org-mode/= / =markdown/=; other extras allowed                |
-| B2   | Course metadata                 | =README.org= at course root                                                        |
-| B3   | Assignment location             | Separate =assignments/= subtree within =org-mode/=                                   |
-| B4   | Shipped code                    | Mirrored into =org-mode/assets/code/=                                              |
-| C1   | Lecture filename                | =<short>-NN-slug.org=                                                              |
-| C2   | Numbering width                 | 2 digits                                                                         |
-| C3   | Multi-part lectures             | Letter suffix: =04a=, =04b=                                                          |
-| C4   | Case convention                 | Lowercase hyphenated throughout                                                  |
-| C5   | Course folder name              | Hyphenated slug; files prefixed with short code declared in =README.org=           |
-| D1   | Required sections               | Prev. lecture / Content / Summary / Next lecture                                 |
-| D2   | Prev/next placement             | Both frontmatter and section                                                     |
-| D3   | Definitions / theorems / proofs | Custom org blocks (=#+BEGIN_definition= etc.)                                      |
-| D4   | Summary content                 | 3–5 bullet recap, then named concepts list                                       |
-| E1   | Frontmatter fields              | COURSE, COURSE_SHORT, TYPE, NUMBER, PREV, NEXT, STATUS, TAGS                      |
-| E2   | Per-course metadata location    | Course =README.org=                                                                |
-| E3   | Licence granularity             | Per course only                                                                  |
-| F1   | Inline math                     | =$x^2$= (Typst, flush)                                                             |
-| F2   | Block math                      | =$ x^2 $= (Typst, spaced)                                                          |
-| F3   | LaTeX in org                    | Forbidden; converted to Typst at import                                          |
-| F4   | Preamble                        | Project-wide =scripts/preamble.typ=                                                |
-| G1   | Code block language             | Required                                                                         |
-| G2   | Babel execution                 | Yes where sensible                                                               |
-| G3   | =#+RESULTS= capture               | Not stored                                                                       |
-| H1   | Asset location                  | =org-mode/assets/attachments/= + =org-mode/assets/code/=                             |
-| H2   | Asset naming                    | Descriptive slug; referenced by relative =[[file:…]]= link                         |
-| H3   | Captions                        | Required for externally-licenced figures                                         |
-| H4   | PDFs in the wiki                | None; URLs only                                                                  |
-| I1   | Assignment template             | Dedicated: Problem statement / Solution / Reflection                             |
-| I2   | Solutions                       | Inline, optional                                                                 |
-| I3   | Assignment numbering            | Lecture-aligned                                                                  |
-| J1   | Intra-course links              | Org-roam IDs                                                                     |
-| J2   | Section-level links             | =::*Heading= syntax                                                                |
-| J3   | Cross-course links              | Org IDs; discouraged                                                             |
-| J4   | External links                  | Plain URLs                                                                       |
-| J5   | Backlinks                       | Via org-roam                                                                     |
-| K1   | Per-course index                | Generated                                                                        |
-| K2   | Project-wide index              | Generated                                                                        |
-| L1   | Tag vocabulary                  | Controlled major + free-form minor; lowercase-hyphenated-full-words enforced     |
-| L2   | Tag scope                       | Heading inheritance (standard org)                                               |
-| M1   | Upstream attribution            | In course =README.org= only                                                        |
-| M2   | Own-notes marking               | =TYPE: own-notes= on the file; README names the author                             |
-| N1   | Markdown generator              | Deferred                                                                         |
-| N2   | Build timing                    | On demand                                                                        |
-| N3   | Obsidian vault shape            | Mirror the org tree exactly                                                      |
-| O1   | Lint form                       | Both — script implements the checklist                                           |
-| O2   | Lint checks                     | Frontmatter / links / required sections / filename-↔-frontmatter / tag spelling |
-| P1   | =source/= edit policy             | Verbatim; no edits at all                                                        |
-| P2   | =source/= sync                    | None; frozen snapshot                                                            |
-| Q1   | Source-format reference         | Single =source-formats.org=                                                        |
-| Q2   | Format-doc depth                | Structure only                                                                   |
+| Code | Decision                        | Choice                                                                                          |
+|------+---------------------------------+-------------------------------------------------------------------------------------------------|
+| A1   | Course grouping                 | By domain (=physics/=, =computing/=, …)                                                             |
+| A2   | Project-wide index and registry | Generated =index.org= and =courses.org= at root                                                     |
+| A3   | Scripts location                | =scripts/=; tooling is not part of the protocol                                                   |
+| A4   | Protocol files location         | =protocol/=                                                                                       |
+| B1   | Per-course subdirs              | Fixed names =source/= / =org-mode/= / =markdown/=; other extras allowed, ignored                      |
+| B2   | Course metadata                 | =README.org= at course root                                                                       |
+| B3   | Assignment location             | Separate =assignments/= subtree within =org-mode/=                                                  |
+| B4   | Shipped code                    | Mirrored into =org-mode/assets/code/=                                                             |
+| C1   | Lecture filename                | =<short>-NN-slug.org=                                                                             |
+| C2   | Numbering width                 | 2 digits                                                                                        |
+| C3   | Multi-part lectures             | Letter suffix: =04a=, =04b=                                                                         |
+| C4   | Case convention                 | Lowercase hyphenated throughout                                                                 |
+| C5   | Course folder name              | Hyphenated slug; files prefixed with short code declared in =README.org=                          |
+| C6   | Short code and parsing          | [new] Unique across the wiki; parse by stripping the declared short code first                  |
+| C7   | Sequence order                  | [new] Number, then part; per =TYPE= within a course                                               |
+| D1   | Required sections               | [rev. 2] Prev. lecture / Content / Summary / Next lecture, exact text                           |
+| D2   | Prev/next placement             | [rev. 2] Both frontmatter and section; =(first lecture)= / =(last lecture)= sentinels               |
+| D3   | Definitions / theorems / proofs | [rev. 2] Custom org blocks (=#+BEGIN_definition= etc.); names required for definition and theorem |
+| D4   | Summary content                 | [rev. 2] =Recap= (3–5 bullets), then =Concepts introduced=, as second-level headings                |
+| E1   | Frontmatter fields              | [rev. 2] ID, COURSE, COURSE_SHORT, TYPE, NUMBER, PREV, NEXT, STATUS, TAGS, MATH_FORMAT            |
+| E2   | Per-course metadata location    | Course =README.org=                                                                               |
+| E3   | Licence granularity             | [rev. 2] Authoritative per course; MAY be copied into files, MUST agree                         |
+| E4   | File metadata placement         | [new] File-level property drawer, then =#+title:=                                                 |
+| E5   | Course README properties        | [new] COURSE, COURSE_SHORT, STATUS, PROTOCOL, UPSTREAM_URL, LICENCE, AUTHOR, IMPORTED             |
+| F1   | Inline math                     | [rev. 2] Per dialect: =\(…\)= (latex), =$x$= flush (typst)                                          |
+| F2   | Block math                      | [rev. 2] Per dialect: =\[…\]= (latex), =$ x $= spaced (typst)                                       |
+| F3   | Dialect mixing and conversion   | [rev. 2] No mixing within a file; LaTeX → Typst conversion is optional                          |
+| F4   | Preamble                        | [rev. 2] Optional =scripts/preamble.typ=; converters MUST NOT depend on it                        |
+| F5   | Dialect declaration             | [new] =:MATH_FORMAT: latex \vert typst=; default =latex=                                                |
+| G1   | Code block language             | Required                                                                                        |
+| G2   | Babel execution                 | Yes where sensible                                                                              |
+| G3   | =#+RESULTS= capture               | Not stored                                                                                      |
+| H1   | Asset location                  | =org-mode/assets/attachments/= + =org-mode/assets/code/=                                            |
+| H2   | Asset naming                    | Descriptive slug; referenced by relative =[[file:…]]= link                                        |
+| H3   | Captions                        | [rev. 2] Required for figures in upstream-derived courses unless own-notes                      |
+| H4   | PDFs in the wiki                | None; URLs only                                                                                 |
+| I1   | Assignment template             | Dedicated: Problem statement / Solution / Reflection                                            |
+| I2   | Solutions                       | Inline, optional                                                                                |
+| I3   | Assignment numbering            | [rev. 2] Lecture-aligned; slug is =assignment=                                                    |
+| J1   | Intra-course links              | Org-roam IDs                                                                                    |
+| J2   | Section-level links             | =::*Heading= syntax                                                                               |
+| J3   | Cross-course links              | Org IDs; discouraged                                                                            |
+| J4   | External links                  | Plain URLs                                                                                      |
+| J5   | Backlinks                       | Via org-roam                                                                                    |
+| K1   | Per-course index                | Generated                                                                                       |
+| K2   | Project-wide index              | Generated                                                                                       |
+| L1   | Tag vocabulary and spelling     | [rev. 2] Controlled major + free-form minor; spelling grammar; full words SHOULD                |
+| L2   | Tag scope                       | Heading inheritance; hyphen written as underscore in org tag position [rev. 2]                  |
+| M1   | Upstream attribution            | In course =README.org= (authoritative)                                                            |
+| M2   | Own-notes marking               | =TYPE: own-notes= on the file, in =lectures/=; README names the author [rev. 2]                     |
+| N1   | Markdown generator              | Deferred                                                                                        |
+| N2   | Build timing                    | On demand                                                                                       |
+| N3   | Obsidian vault shape            | Mirror the org tree exactly                                                                     |
+| O1   | Lint form                       | Both: prose checklist and an executable script                                                  |
+| O2   | Lint checks                     | [rev. 2] Superseded by the rule table in [[*Conformance levels]]                                    |
+| O3   | Conformance levels              | [new] Cumulative levels 0–2 mapped to =stub= / =draft= / =clean=                                      |
+| O4   | Diagnostic format               | [new] =<path>:<line>: <rule-id>: <message>=                                                       |
+| P1   | =source/= edit policy             | Verbatim; no edits at all                                                                       |
+| P2   | =source/= sync                    | None; frozen snapshot                                                                           |
+| Q1   | Source-format reference         | Single =source-formats.org=                                                                       |
+| Q2   | Format-doc depth                | Structure only                                                                                  |
+| R1   | Protocol version                | [new] Integer; =:PROTOCOL:= in course =README.org=; absent means 1                                  |
+| R2   | Unknown properties              | [new] Consumers ignore and preserve                                                             |
+| S1   | Status semantics                | [new] =:STATUS:= is a claim of conformance level; producers MUST NOT overclaim                    |
+| S2   | Course status                   | [new] Not higher than the lowest file status                                                    |
+| S3   | Default lint behaviour          | [new] No level given: each file is checked at its declared status                               |
+
+* Revision history
+
+** Draft 2
+
+Changed:
+
+- *Maths (F1–F4).* The protocol is no longer Typst-only. Each file declares
+  =:MATH_FORMAT:= (=latex=, the default, or =typst=) and uses that
+  dialect's delimiters only.
+- *Boundary sentinels (D2).* =(first lecture)= and =(last lecture)= are
+  specified.
+- *Provenance (E3).* The course =README.org= is authoritative; files MAY
+  carry copies.
+- *Captions (H3).* The requirement is stated in terms a linter can decide.
+- *Tags (L1, L2).* Spelling is a grammar; "full words" is a SHOULD, because
+  abbreviations cannot be checked mechanically. Hyphens are written as
+  underscores in org tag position, where Org does not allow them.
+- *Own-notes (M2).* They live in =lectures/= and follow the lecture rules.
+- *Lint checks (O2).* Replaced by the rule table.
+- *Clarified (D1, D3, D4, I3).* Heading text is exact; =definition= and
+  =theorem= blocks require a name; =Recap= and =Concepts introduced= are
+  second-level headings; the assignment slug is always =assignment=.
+
+Added: R1, R2 (versioning and extensibility), C6, C7 (short-code parsing
+and sequence order), E4, E5 (file and course metadata), F5, S1–S3, O3
+(conformance levels), O4 (diagnostics), the grammars in File naming, and
+the Reserved section.
+
+Moved out of the protocol: the script listing (tooling is not part of the
+protocol), the status prose, and the known Typst conversion limitations
+(now in the repository README).
